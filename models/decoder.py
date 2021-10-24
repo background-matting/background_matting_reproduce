@@ -6,24 +6,39 @@ import torch.nn.functional as F
 
 
 class decode(torch.nn.Module):
-    def __init__(self, input_channel, output_channel, resnet_block_num=20):
+    def __init__(self, input_channel, output_channel, resnet_block_num=20, upsampling=2):
         super().__init__()
-        self.preprocess = nn.sequence(nn.Conv2d(input_channel, output_channel, stride=1),
-                                      nn.BatchNorm2d(output_channel),
-                                      nn.ReLU(inplace=True))
-        self.ResBLK = []
-        for _ in resnet_block_num:
-            self.ResBLK += res_block(output_channel, output_channel)
-        self.ResBLK_foreground = self.ResBLK
-        self.ResBLK_alpha = self.ResBLK
+        # got idea from resnet18
+        img_feat = 80
+        ResBLK = []
+        for _ in range(resnet_block_num):
+            ResBLK += [res_block(input_channel, input_channel)]
+        ResBLK_foreground = ResBLK
+        ResBLK_alpha = ResBLK
 
-        self.ResBLK_foreground_output = upsampling_block()
-        self.ResBLK_alpha_output = self.ResBLK_foreground_output
+        ResBLK_alpha_output = []
+        for _ in range(upsampling):
+            ResBLK_alpha_output += [upsampling_block(input_channel, int(input_channel / 2))]
+            input_channel = int(input_channel / 2)
+        ResBLK_alpha_output += [final_padding_block(input_channel, 1)]
 
-        self.F_out = upsampling_block()
+        input_channel = input_channel * 2 * upsampling
+        ResBLK_foreground_output = []
+        for _ in range(upsampling - 1):
+            ResBLK_foreground_output += [upsampling_block(input_channel, int(input_channel / 2))]
+            input_channel = int(input_channel / 2)
+        F_out = [upsampling_block(input_channel * 2, 64)]
+        F_out += [nn.ReflectionPad2d(3), nn.Conv2d(64, output_channel - 1, kernel_size=7, padding=0)]
 
-    def forward(self, img_feat, comb_feat):
-        out_all = torch.cat([img_feat, comb_feat], dim=1)
+        self.ResBLK = nn.Sequential(*ResBLK)
+        self.ResBLK_foreground = nn.Sequential(*ResBLK_foreground)
+        self.ResBLK_alpha = nn.Sequential(*ResBLK_alpha)
+        self.ResBLK_alpha_output = nn.Sequential(*ResBLK_alpha_output)
+        self.ResBLK_foreground_output = nn.Sequential(*ResBLK_foreground_output)
+        self.F_out = nn.Sequential(*F_out)
+
+    def forward(self,comb_feat,img_feat):
+        """out_all = torch.cat([img_feat, comb_feat], dim=1)
         out_all = self.preprocess(out_all)
         x = self.ResBLK(out_all)
         fg = self.ResBLK_foreground(x)
@@ -31,13 +46,23 @@ class decode(torch.nn.Module):
         fg = self.ResBLK_foreground_output(fg)
         alpha = self.ResBLK_alpha_output(alpha)
         F = self.F_out(torch.cat([fg, img_feat], dim=1))
+        return F, alpha"""
+        x = self.ResBLK(comb_feat)
+        fg = self.ResBLK_foreground(x)
+        alpha = self.ResBLK_alpha(x)
+        # decoder part
+        fg = self.ResBLK_foreground_output(fg)
+        alpha = self.ResBLK_alpha_output(alpha)
+        # output F and alpha
+        F = self.F_out(torch.cat([fg, img_feat], dim=1))
         return F, alpha
 
 
 class res_block(torch.nn.Module):
     def __init__(self, input_channel, output_channel):
-        self.conv1  = nn.Conv2d(input_channel, output_channel, stride=1)
-        self.conv2 = nn.Conv2d(output_channel, output_channel, stride=1),
+        super().__init__()
+        self.conv1 = nn.Conv2d(input_channel, output_channel, stride=1, padding=1, kernel_size=3)
+        self.conv2 = nn.Conv2d(output_channel, output_channel, stride=1, padding=1, kernel_size=3)
         self.bn = nn.BatchNorm2d(output_channel)
 
     def forward(self, inputs):
@@ -51,8 +76,9 @@ class res_block(torch.nn.Module):
 
 class upsampling_block(torch.nn.Module):
     def __init__(self, input_channel, output_channel):
+        super().__init__()
         self.upsampling = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.conv1 = nn.Conv2d(input_channel*2, output_channel, stride=1)
+        self.conv1 = nn.Conv2d(input_channel, output_channel, kernel_size=3, stride=1, padding=1)
         self.bn = nn.BatchNorm2d(output_channel)
 
     def forward(self, inputs):
@@ -61,3 +87,22 @@ class upsampling_block(torch.nn.Module):
         outputs = F.relu(self.bn(outputs))
         return outputs
 
+
+class final_padding_block(torch.nn.Module):
+    def __init__(self, input_channel, output_channel):
+        super().__init__()
+        self.padding = nn.ReflectionPad2d(3)
+        self.conv1 = nn.Conv2d(input_channel, output_channel, kernel_size=7, padding=0, stride=1)
+        self.bn = nn.BatchNorm2d(output_channel)
+
+    def forward(self, x):
+        x = self.conv1(self.padding(x))
+        x = F.tanh(x)
+        return x
+
+
+# (num_img,256,W/4,H/4)
+comb = torch.randn(4, 256, 80, 80)
+img = torch.randn(4, 128, 160, 160)
+net = decode(256, 64)
+output = net(comb,img)
