@@ -5,8 +5,20 @@ from torch.utils.data import Dataset, DataLoader
 import random
 import os
 import cv2
+from PIL import Image
+from torchvision import transforms
+import random
 
 unknown_code = 128
+
+this_transforms = transforms.Compose([
+    transforms.Resize((800, 800)),
+    transforms.RandomCrop(random.randrange(500, 800, 32)),
+    transforms.RandomHorizontalFlip(p=0.5),
+])
+
+
+# def generate_seg()
 
 
 class AdobeBGMData(Dataset):
@@ -21,16 +33,21 @@ class AdobeBGMData(Dataset):
         self.reso = resolution
         self.noise = noise
 
+        if transform is None:
+            self.transform = this_transforms
+        else:
+            self.transform = transform
+
     def __len__(self):
         return len(self.img_files)
 
     def __getitem__(self, index):
 
         # load data
-        img = cv2.imread(os.path.join(self.root_path, 'img', self.img_files[index]))
-        fg = cv2.imread(os.path.join(self.root_path, 'fg', self.fg_files[index]))
-        bg = cv2.imread(os.path.join(self.root_path, 'bg', self.bg_files[index]))
-        aph = cv2.cvtColor(cv2.imread(os.path.join(self.root_path, 'aph', self.aph_files[index])), cv2.COLOR_BGR2GRAY)
+        img = Image.open(os.path.join(self.root_path, 'img', self.img_files[index])).convert('RGB')
+        fg = Image.open(os.path.join(self.root_path, 'fg', self.fg_files[index])).convert('RGB')
+        bg = Image.open(os.path.join(self.root_path, 'bg', self.bg_files[index])).convert('RGB')
+        aph = Image.open(os.path.join(self.root_path, 'aph', self.aph_files[index])).convert('L')
 
         fg = cv2.resize(fg, dsize=(800, 800))
         aph = cv2.resize(aph, dsize=(800, 800))
