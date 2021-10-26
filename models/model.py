@@ -4,10 +4,10 @@ import torch.nn as nn
 
 
 class Net(nn.Module):
-    def __init__(self, input_channel, output_channel, num_filter=64, nf_part=64):
+    def __init__(self, input_channel, output_channel):
         super(Net, self).__init__()
-        self.CSblock = CSblock(input_channel=(3, 3, 1, 4), output_channel=4)
-        self.decoder = decode(256, 4)
+        self.CSblock = CSblock(input_channel=input_channel, output_channel=output_channel)
+        self.decoder = decode(256, 3)
 
     def forward(self, image, background, segmentation, motion):
         img_feature128, out_feature = self.CSblock(image, background, segmentation, motion)
