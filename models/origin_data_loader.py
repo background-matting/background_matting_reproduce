@@ -10,7 +10,7 @@ unknown_code = 128
 
 
 class AdobeBGMData(Dataset):
-    def __init__(self, trimap_k, resolution, noise, data_path='./Data', transform=None):
+    def __init__(self, trimap_k, resolution, noise, data_path, transform=None):
         self.root_path = data_path
         self.img_files = os.listdir(os.path.join(data_path, 'img'))
         self.fg_files = os.listdir(os.path.join(data_path, 'fg'))
