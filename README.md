@@ -42,7 +42,9 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 `save_black_img.py` generate a black background. it is used in visualized foreground result in `test_adobe.py`
 
 `util.py` contains three methods, which helps convert tensor to image and convert image to tensor
+
 #####below are the train and test scripts
+
 `train_Adobe.py` trains the first stage. Because the model is huge, we have tested that it should run at least in two GPUs and using dataParallel. We create a document called net to save the checkpoint. Now you could run the following code to have a look at the implementation(if you have the data).
 <pre><code>python train_Adobe.py -np net/net.pt -op net/opt.pt</code></pre>
 
@@ -55,7 +57,9 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 `test_one_file.py` I put one group of data and you could visualize the result in one_img file after running the code.
 <pre><code>python test_one_file.py -np net/net_10.pt </code></pre>
 * * *
+
 ##Reference
+
 Ning Xu, Brian Price, Scott Cohen, Thomas Huang.  Deep Image Matting.  In Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR) 2017.
 Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
 Sengupta S, Jayaram V, Curless B, et al. Background matting: The world is your green screen[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020: 2291-2300
