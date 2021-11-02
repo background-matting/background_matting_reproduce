@@ -11,7 +11,7 @@ Our code focus on picture matting which mainly contains four parts(the experimen
 
 The detailed development is added on the top of each python file.
 * * *
-##Dataset
+## Dataset
 
 We use two Datasets here, The first is <i>Adobe Deep Image Matting Dataset</i>, the second is the sample our reproduced paper provided. The authors provide some train videos and test videos, we cut those video by frames to get our second stage training and testing dataset.
 
@@ -43,7 +43,7 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 `util.py` contains three methods, which helps convert tensor to image and convert image to tensor
 
-#####below are the train and test scripts
+##### below are the train and test scripts
 
 `train_Adobe.py` trains the first stage. Because the model is huge, we have tested that it should run at least in two GPUs and using dataParallel. We create a document called net to save the checkpoint. Now you could run the following code to have a look at the implementation(if you have the data).
 <pre><code>python train_Adobe.py -np net/net.pt -op net/opt.pt</code></pre>
@@ -58,7 +58,7 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 <pre><code>python test_one_file.py -np net/net_10.pt </code></pre>
 * * *
 
-##Reference
+## Reference
 
 Ning Xu, Brian Price, Scott Cohen, Thomas Huang.  Deep Image Matting.  In Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR) 2017.
 Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
