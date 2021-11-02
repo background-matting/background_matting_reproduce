@@ -19,6 +19,7 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 
 * * *
+## Code
 `calculate.py` could calculate the MSE,SAD and IoU of our alpha matte and ground truth.
 >We put two samples in alpha document, you could easily run the following code to get the result.
 <pre><code>python calculate.py -op alpha/GAN_alpha0.png -gt alpha/GT.png -ops alpha/GAN_alpha0.pt -gts alpha/GT.pt</code></pre>
