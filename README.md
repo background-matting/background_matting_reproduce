@@ -60,6 +60,6 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 ## Reference
 
-Ning Xu, Brian Price, Scott Cohen, Thomas Huang.  Deep Image Matting.  In Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR) 2017.
-Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
-Sengupta S, Jayaram V, Curless B, et al. Background matting: The world is your green screen[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020: 2291-2300
+1. Ning Xu, Brian Price, Scott Cohen, Thomas Huang.  Deep Image Matting.  In Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR) 2017.
+2. Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
+3. Sengupta S, Jayaram V, Curless B, et al. Background matting: The world is your green screen[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020: 2291-2300
