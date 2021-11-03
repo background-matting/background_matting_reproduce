@@ -2,6 +2,7 @@
 '''
 reference: https://github.com/senguptaumd/Background-Matting.git
 '''
+
 import torch
 import skimage
 import skimage.io
@@ -64,6 +65,11 @@ class AdobeBGMData(Dataset):
         aph = np.array(aph)
         trimap = np.array(trimap)
 
+        # print(img.shape)
+        # print(fg.shape)
+        # print(bg.shape)
+        # print(aph.shape)
+
         # Perturb Background: add Gaussian noise or change gamma
         if self.noise:
             if np.random.random_sample() > 0.5:
@@ -71,7 +77,7 @@ class AdobeBGMData(Dataset):
             else:
                 bg_tr = skimage.exposure.adjust_gamma(bg, np.random.normal(1, 0.12))
 
-        # Create motion cues: transform foreground and create 4 additional images
+        # Create motion cues: transform foreground and create 4 motion images
         frames = np.zeros((fg.shape[0], fg.shape[1], 4))
         for t in range(0, 4):
             img_tr = generate_add_img(fg, aph, bg)
@@ -101,8 +107,7 @@ class VideoData(Dataset):
 
     def video_transforms(self):
         this_transforms = transforms.Compose([
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Resize(self.reso)
+            transforms.RandomHorizontalFlip(p=0.5)
         ])
         return this_transforms
 
@@ -118,6 +123,7 @@ class VideoData(Dataset):
 
         back_rnd = skimage.io.imread(self.frames.iloc[idx, 7])
 
+        # because the images are in cv2 type, here we do not use transfroms.randomFilp
         if np.random.random_sample() > 0.5:
             img = cv2.flip(img, 1)
             seg = cv2.flip(seg, 1)
@@ -128,23 +134,21 @@ class VideoData(Dataset):
             fr3 = cv2.flip(fr3, 1)
             fr4 = cv2.flip(fr4, 1)
 
-        # make frames together
+        # multiple frames
         multi_fr = np.zeros((img.shape[0], img.shape[1], 4))
         multi_fr[..., 0] = fr1
         multi_fr[..., 1] = fr2
         multi_fr[..., 2] = fr3
         multi_fr[..., 3] = fr4
 
-        # allow random cropping centered on the segmentation map
-        bbox = create_bbox(seg, seg.shape[0], seg.shape[1])
-        img = apply_crop(img, bbox, self.reso)
-        seg = apply_crop(seg, bbox, self.reso)
-        back = apply_crop(back, bbox, self.reso)
-        back_rnd = apply_crop(back_rnd, bbox, self.reso)
-        multi_fr = apply_crop(multi_fr, bbox, self.reso)
+        # create randomly cropping centered with the segmentation map
+        img, seg, back, back_rnd, multi_fr = create_center(img, seg, back, back_rnd, multi_fr, self.reso)
 
-        sample = {'image': to_tensor(img), 'seg': to_tensor(create_seg_guide(seg, self.reso)),
-                  'bg': to_tensor(back), 'multi_fr': to_tensor(multi_fr), 'seg-gt': to_tensor(seg),
+        # generate soft segmentation
+        seg = create_guide_seg(seg, self.reso)
+
+        sample = {'image': to_tensor(img), 'seg': to_tensor(seg), 'bg': to_tensor(back),
+                  'multi_fr': to_tensor(multi_fr), 'seg-gt': to_tensor(seg),
                   'back-rnd': to_tensor(back_rnd)}
 
         if self.transform:
@@ -287,38 +291,32 @@ def generate_seg(alpha, trimap):
     return seg.astype(np.uint8)
 
 
-def create_seg_guide(rcnn, reso):
-    kernel_er = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    kernel_dil = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    rcnn = rcnn.astype(np.float32) / 255
-    rcnn[rcnn > 0.2] = 1
+def create_guide_seg(seg, reso):
+    ke = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    kd = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    seg = seg.astype(np.float32) / 255
+    seg[seg > 0.2] = 1
     K = 25
 
-    zero_id = np.nonzero(np.sum(rcnn, axis=1) == 0)
+    zero_id = np.nonzero(np.sum(seg, axis=1) == 0)
     del_id = zero_id[0][zero_id[0] > 250]
     if len(del_id) > 0:
         del_id = [del_id[0] - 2, del_id[0] - 1, *del_id]
-        rcnn = np.delete(rcnn, del_id, 0)
-    rcnn = cv2.copyMakeBorder(rcnn, 0, K + len(del_id), 0, 0, cv2.BORDER_REPLICATE)
+        seg = np.delete(seg, del_id, 0)
+    seg = cv2.copyMakeBorder(seg, 0, K + len(del_id), 0, 0, cv2.BORDER_REPLICATE)
 
-    rcnn = cv2.erode(rcnn, kernel_er, iterations=np.random.randint(10, 20))
-    rcnn = cv2.dilate(rcnn, kernel_dil, iterations=np.random.randint(3, 7))
+    seg = cv2.erode(seg, ke, iterations=np.random.randint(10, 20))
+    seg = cv2.dilate(seg, kd, iterations=np.random.randint(3, 7))
     k_size_list = [(21, 21), (31, 31), (41, 41)]
-    rcnn = cv2.GaussianBlur(rcnn.astype(np.float32), random.choice(k_size_list), 0)
-    rcnn = (255 * rcnn).astype(np.uint8)
-    rcnn = np.delete(rcnn, range(reso[0], reso[0] + K), 0)
+    seg = cv2.GaussianBlur(seg.astype(np.float32), random.choice(k_size_list), 0)
+    seg = (255 * seg).astype(np.uint8)
+    seg = np.delete(seg, range(reso[0], reso[0] + K), 0)
 
-    return rcnn
-
-
-def apply_crop(img, bbox, reso):
-    img_crop = img[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3], ...]
-    img_crop = cv2.resize(img_crop, reso)
-    return img_crop
+    return seg
 
 
-def create_bbox(mask, R, C):
-    where = np.array(np.where(mask))
+def create_center(img, seg, back, back_rnd, multi_fr, reso):
+    where = np.array(np.where(seg))
     x1, y1 = np.amin(where, axis=1)
     x2, y2 = np.amax(where, axis=1)
 
@@ -330,9 +328,23 @@ def create_bbox(mask, R, C):
 
     if x1 < 0: x1 = 0
     if y1 < 0: y1 = 0
-    if y2 >= C: y2 = C
-    if x2 >= R: x2 = R - 1
+    if y2 >= seg.shape[1]: y2 = seg.shape[1]
+    if x2 >= seg.shape[0]: x2 = seg.shape[0] - 1
 
-    bbox = np.around([x1, y1, x2 - x1, y2 - y1]).astype('int')
+    center = np.around([x1, y1, x2 - x1, y2 - y1]).astype('int')
 
-    return bbox
+    img_crop = img[center[0]:center[0] + center[2], center[1]:center[1] + center[3], ...]
+    seg_crop = seg[center[0]:center[0] + center[2], center[1]:center[1] + center[3], ...]
+    back_crop = back[center[0]:center[0] + center[2], center[1]:center[1] + center[3], ...]
+    back_rnd_crop = back_rnd[center[0]:center[0] + center[2], center[1]:center[1] + center[3], ...]
+    mt_crop = multi_fr[center[0]:center[0] + center[2], center[1]:center[1] + center[3], ...]
+
+    img_crop = cv2.resize(img_crop, reso)
+    seg_crop = cv2.resize(seg_crop, reso)
+    back_crop = cv2.resize(back_crop, reso)
+    back_rnd_crop = cv2.resize(back_rnd_crop, reso)
+    mt_crop = cv2.resize(mt_crop, reso)
+
+    return img_crop, seg_crop, back_crop, back_rnd_crop, mt_crop
+
+
