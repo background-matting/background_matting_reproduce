@@ -75,6 +75,7 @@ class gradient_loss(_Loss):
 		loss = x_loss+y_loss
 		return loss
 
+# base on https://github.com/senguptaumd/Background-Matting 
 class GANloss(_Loss):
 	def __init__(self):
 		super(GANloss,self).__init__()
