@@ -10,7 +10,7 @@ class Discriminator(nn.Module):
         self.n_layers = n_layers
 
         for i in range(num_D):
-            netD = NLayerDiscriminator(input_nc, ndf, n_layers, norm_layer)
+            netD = PatchDiscriminator(input_nc, ndf, n_layers, norm_layer)
             setattr(self, 'layer' + str(i), netD.model)
 
         self.downsample = nn.AvgPool2d(3, stride=2, padding=[1, 1], count_include_pad=False)
@@ -27,10 +27,10 @@ class Discriminator(nn.Module):
         return result
 
 
-# PatchGAN discriminator
-class NLayerDiscriminator(nn.Module):
+# PatchGAN discriminator from https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
+class PatchDiscriminator(nn.Module):
     def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d):
-        super(NLayerDiscriminator, self).__init__()
+        super(PatchDiscriminator, self).__init__()
         self.n_layers = n_layers
 
         kw = 4
