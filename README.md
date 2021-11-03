@@ -72,3 +72,4 @@ please put this two files into net file
 2. Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
 3. Sengupta S, Jayaram V, Curless B, et al. Background matting: The world is your green screen[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020: 2291-2300
 4. P. Isola, J.-Y. Zhu, T. Zhou, and A. A. Efros, “Image-to- image translation with conditional adversarial networks,” in Proceedings of the IEEE conference on computer vision and pattern recognition, pp. 1125–1134, 2017.
+5. Jun-Yan Zhu*, Taesung Park*, Phillip Isola, Alexei A. Efros, "Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks." In ICCV 2017. (* equal contributions)
