@@ -38,7 +38,7 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 `model.py` is the generate model, encoder and encoder is used in it.
 
-`oritin_data_loader.py` contains all data preprocessors (Adobe image and video frame cut).
+`origin_data_loader.py` contains all data preprocessors (Adobe image and video frame cut).
 
 `save_black_img.py` generate a black background. it is used in visualized foreground result in `test_adobe.py`
 
