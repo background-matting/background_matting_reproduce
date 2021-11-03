@@ -19,12 +19,19 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 
 * * *
+## Checkpoint
+https://drive.google.com/drive/folders/1JyxZPyfjtaF1rzVzCfN6Ts-aEkpRGwFe?usp=sharing
+
+please put this two files into net file
+
+* * *
 ## Code
 `calculate.py` could calculate the MSE,SAD and IoU of our alpha matte and ground truth.
 >We put two samples in alpha document, you could easily run the following code to get the result.
 <pre><code>python calculate.py -op alpha/GAN_alpha0.png -gt alpha/GT.png -ops alpha/GAN_alpha0.pt -gts alpha/GT.pt</code></pre>
 
-`bayesian_matting.py` is our compared module, Thanks for <a href="https://github.com/MarcoForte/bayesian-matting">MarcoForte's</a> work on github and <a href="https://github.com/SamuelYG/trimap_generate">yanggang's</a> trimap generate method. We reuse their code to get the bayesian result.
+`bayesian_matting.py` is our compared module, Thanks for <a href="https://github.com/MarcoForte/bayesian-matting">MarcoForte's</a> work on github and <a href="https://github.com/SamuelYG/trimap_generate">yanggang's</a> trimap generate method. We reuse their code to get the bayesian result. I didn't put it in my code because of the checking reasons
+
 
 `Composition_code.py` is provided by Adobe, we modified it to achieve generating new images with different background parts. `train_Adobe.py`,`train_withGAN.py`,`test_adobe.py`,`test_real.py` and `test_one_file.py` use this python script.
 
@@ -32,7 +39,7 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 
 `decoder.py` is another part of the paper. It is part of the whole model in `model.py`.
 
-`discriminator.py` is the part in GAN training. it is called in  `train_withGAN.py`
+`discriminator.py` is the part in GAN training. it is called in  `train_withGAN.py`, Thanks for <a href="https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix">juyuan's</a> code online. 
 
 `loss_function.py` only contains for loss functions: L1 loss; compose loss; gradient loss and GANloss. The combination of those loss could calculate the GAN loss in `train_withGAN.py`.
 
@@ -64,3 +71,5 @@ Follow the <a href="https://sites.google.com/view/deepimagematting">instruction<
 1. Ning Xu, Brian Price, Scott Cohen, Thomas Huang.  Deep Image Matting.  In Proceedings of the Conference on Computer Vision and Pattern Recognition (CVPR) 2017.
 2. Yung-Yu Chuang, Brian Curless, David H. Salesin, and Richard Szeliski. A Bayesian Approach to Digital Matting. In Proceedings of IEEE Computer Vision and Pattern Recognition (CVPR 2001), Vol. II, 264-271, December 2001
 3. Sengupta S, Jayaram V, Curless B, et al. Background matting: The world is your green screen[C]//Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020: 2291-2300
+4. Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks. Jun-Yan Zhu*, Taesung Park*, Phillip Isola, Alexei A. Efros. In ICCV 2017. 
+5. Image-to-Image Translation with Conditional Adversarial Networks. Phillip Isola, Jun-Yan Zhu, Tinghui Zhou, Alexei A. Efros. In CVPR 2017.
